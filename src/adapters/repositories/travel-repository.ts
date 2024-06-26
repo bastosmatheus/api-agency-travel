@@ -1,3 +1,5 @@
+import { Travel } from "@/core/entities/travel";
+
 interface TravelRepository {
   findAll(): Promise<Travel[]>;
   findByOriginCity(city: string): Promise<Travel[]>;
@@ -7,18 +9,9 @@ interface TravelRepository {
   findByExitTime(time: string): Promise<Travel[]>;
   findByExitDate(date: Date): Promise<Travel[]>;
   findById(id: number): Promise<Travel | null>;
-  create(
-    originCity: string,
-    exitDate: Date,
-    exitTime: string,
-    exitLocation: string,
-    destinationCity: string,
-    arrivalDate: Date,
-    arrivalLocation: string,
-    busSeat: string,
-    price: number,
-    availableSeats: number
-  ): Promise<Travel>;
+  create(travel: Travel): Promise<Travel>;
   updateAvailableSeats(id: number): Promise<Travel>;
   delete(id: number): Promise<Travel>;
 }
+
+export { TravelRepository };

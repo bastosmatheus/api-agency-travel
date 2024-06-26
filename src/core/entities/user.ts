@@ -3,24 +3,26 @@ class User {
     public id: number | null,
     public name: string,
     public email: string,
+    public password: string,
     public cpf: string,
     public telephone: string,
-    public isAdmin: boolean
+    public isAdmin: boolean = false
   ) {}
 
-  public create(name: string, email: string, cpf: string, telephone: string, isAdmin: boolean) {
-    return new User(null, name, email, cpf, telephone, isAdmin);
+  static create(name: string, email: string, password: string, cpf: string, telephone: string) {
+    return new User(null, name, email, password, cpf, telephone);
   }
 
-  public restore(
+  static restore(
     id: number,
     name: string,
     email: string,
+    password: string,
     cpf: string,
     telephone: string,
     isAdmin: boolean
   ) {
-    return new User(id, name, email, cpf, telephone, isAdmin);
+    return new User(id, name, email, password, cpf, telephone, isAdmin);
   }
 }
 

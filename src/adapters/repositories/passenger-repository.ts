@@ -1,9 +1,10 @@
-import { Passenger } from "../../core/entities/passenger";
+import { Passenger } from "@/core/entities/passenger";
 
 interface PassengerRepository {
   findAll(): Promise<Passenger[]>;
   findByRg(rg: string): Promise<Passenger | null>;
-  create(name: string, rg: string): Promise<Passenger>;
+  findById(id: number): Promise<Passenger | null>;
+  create(passenger: Passenger): Promise<Passenger>;
   delete(id: number): Promise<Passenger>;
 }
 
