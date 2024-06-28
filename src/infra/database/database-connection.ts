@@ -5,14 +5,14 @@ import { configDotenv } from "dotenv";
 const env = configDotenv();
 
 interface DatabaseConnection {
-  query(queryString: string, params: unknown[]): void;
+  query(queryString: string, params: unknown[]): Promise<any>;
 }
 
 class PgPromiseAdapter implements DatabaseConnection {
   private readonly connection: pgp.IDatabase<{}, pg.IClient>;
 
   constructor() {
-    this.connection = pgp()("");
+    this.connection = pgp()(process.env.DATABASE_URL as string);
   }
 
   public async query(queryString: string, params: unknown[]) {
@@ -22,4 +22,4 @@ class PgPromiseAdapter implements DatabaseConnection {
   }
 }
 
-export { PgPromiseAdapter };
+export { PgPromiseAdapter, DatabaseConnection };

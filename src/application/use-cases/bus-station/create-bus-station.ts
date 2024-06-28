@@ -25,22 +25,31 @@ class CreateBusStation {
       return failure(new ConflictError(`Essa rodoviária já está cadastrada`));
     }
 
-    const response = this.fetch.post(
+    const response = await this.fetch.post(
       "https://places.googleapis.com/v1/places:searchText",
       { textQuery: `${name}, ${city}`, languageCode: "pt-BR", rankPreference: "RELEVANCE" },
       "places.types,places.displayName"
     );
 
-    const busStationValid = response.places[0];
-    const types = busStationValid.types;
-    const formattedAddress = busStationValid.displayName.text;
-
-    if (!busStationValid || !types.includes("bus_station") || !types.includes("agency_travel")) {
+    if (!response.places) {
       return failure(new BadRequestError(`Nenhuma rodoviária encontrada com esse nome: ${name}`));
     }
 
-    const busStationCreate = BusStation.create(formattedAddress, city, uf);
-    const busStation = await this.busStationRepository.create(busStationCreate);
+    const busStationValid = response.places[0];
+    const types = busStationValid.types;
+    const formattedAddress = busStationValid.displayName.text;
+    const typesValids =
+      types.includes("bus_station") ||
+      types.includes("agency_travel") ||
+      types.includes("bus_stop") ||
+      types.includes("transit_station");
+
+    if (!typesValids) {
+      return failure(new BadRequestError(`O local pesquisado não é uma rodoviária`));
+    }
+
+    const busStationCreated = BusStation.create(formattedAddress, city, uf);
+    const busStation = await this.busStationRepository.create(busStationCreated);
 
     return success(busStation);
   }

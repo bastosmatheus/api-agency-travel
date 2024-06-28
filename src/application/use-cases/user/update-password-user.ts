@@ -1,7 +1,8 @@
-import { UserRepository } from "@/adapters/repositories/user-repository";
-import { Either, failure, success } from "@/utils/either";
-import { NotFoundError } from "../errors/not-found-error";
 import { User } from "@/core/entities/user";
+import { NotFoundError } from "../errors/not-found-error";
+import { UserRepository } from "@/adapters/repositories/user-repository";
+import { HasherAndCompare } from "@/infra/cryptography/cryptography";
+import { Either, failure, success } from "@/utils/either";
 
 type UpdatePasswordUserRequest = {
   id: number;
@@ -9,7 +10,7 @@ type UpdatePasswordUserRequest = {
 };
 
 class UpdatePasswordUser {
-  constructor(private userRepository: UserRepository) {}
+  constructor(private userRepository: UserRepository, private cryptography: HasherAndCompare) {}
 
   public async execute({
     id,
@@ -21,7 +22,9 @@ class UpdatePasswordUser {
       return failure(new NotFoundError(`Nenhum usuário encontrado com o ID: ${id}`));
     }
 
-    const user = await this.userRepository.updatePasswordUser(id, password);
+    const passwordHashed = await this.cryptography.hash(password);
+
+    const user = await this.userRepository.updatePasswordUser(id, passwordHashed);
 
     return success(user);
   }

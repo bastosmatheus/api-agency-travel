@@ -34,6 +34,12 @@ class CreateUser {
       return failure(new ConflictError(`Esse cpf já está em uso`));
     }
 
+    const telephoneExists = await this.userRepository.findByTelephone(telephone);
+
+    if (telephoneExists) {
+      return failure(new ConflictError(`Esse telefone já está em uso`));
+    }
+
     const passwordHashed = await this.cryptography.hash(password);
 
     const userCreated = User.create(name, email, passwordHashed, cpf, telephone);

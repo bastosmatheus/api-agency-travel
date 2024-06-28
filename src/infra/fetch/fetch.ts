@@ -1,6 +1,10 @@
+import { configDotenv } from "dotenv";
+
 interface Fetch {
-  post(url: string, bodyData: {}, headerFieldMask: string): any;
+  post(url: string, bodyData: {}, headerFieldMask: string): Promise<any>;
 }
+
+const env = configDotenv();
 
 class FetchAdapter implements Fetch {
   private readonly fetch: typeof fetch;

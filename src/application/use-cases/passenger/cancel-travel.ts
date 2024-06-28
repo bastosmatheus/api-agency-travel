@@ -32,7 +32,7 @@ class CancelTravel {
       );
     }
 
-    const diffInHours = passengerExists.cancelTravel(travelExists.exitDate, new Date());
+    const diffInHours = passengerExists.cancelTravel(travelExists.derpatureDate, new Date());
 
     if (diffInHours <= 1) {
       return failure(

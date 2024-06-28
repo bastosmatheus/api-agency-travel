@@ -6,7 +6,7 @@ class User {
     public password: string,
     public cpf: string,
     public telephone: string,
-    public isAdmin: boolean = false
+    public is_admin: boolean = false
   ) {}
 
   static create(name: string, email: string, password: string, cpf: string, telephone: string) {
@@ -20,9 +20,9 @@ class User {
     password: string,
     cpf: string,
     telephone: string,
-    isAdmin: boolean
+    is_admin: boolean
   ) {
-    return new User(id, name, email, password, cpf, telephone, isAdmin);
+    return new User(id, name, email, password, cpf, telephone, is_admin);
   }
 }
 

@@ -30,8 +30,8 @@ class CreatePassenger {
     }
 
     const passengerCreated = Passenger.create(name, rg, seat, id_travel);
-
     const passenger = await this.passengerRepository.create(passengerCreated);
+    travelExists.updateAvailableSeats(seat);
 
     return success(passenger);
   }
