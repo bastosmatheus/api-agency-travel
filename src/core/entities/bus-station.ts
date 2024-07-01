@@ -10,7 +10,7 @@ class BusStation {
     return new BusStation(null, name, city, uf);
   }
 
-  static restore(id: number | null, name: string, city: string, uf: string) {
+  static restore(id: number, name: string, city: string, uf: string) {
     return new BusStation(id, name, city, uf);
   }
 }

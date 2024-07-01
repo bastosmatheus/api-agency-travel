@@ -10,7 +10,7 @@ class Travel {
     public distance_km: number,
     public duration: string,
     public available_seats: number[],
-    public id_busStation_derpatureLocation: number,
+    public id_busStation_departureLocation: number,
     public id_busStation_arrivalLocation: number
   ) {}
 
@@ -21,7 +21,7 @@ class Travel {
     price: number,
     distance_km: number,
     duration: string,
-    id_busStation_derpatureLocation: number,
+    id_busStation_departureLocation: number,
     id_busStation_arrivalLocation: number
   ) {
     const availableSeats = Travel.createSeats();
@@ -35,7 +35,7 @@ class Travel {
       distance_km,
       duration,
       availableSeats,
-      id_busStation_derpatureLocation,
+      id_busStation_departureLocation,
       id_busStation_arrivalLocation
     );
   }
@@ -49,7 +49,7 @@ class Travel {
     distance_km: number,
     duration: string,
     available_seats: number[],
-    id_busStation_derpatureLocation: number,
+    id_busStation_departureLocation: number,
     id_busStation_arrivalLocation: number
   ) {
     return new Travel(
@@ -61,7 +61,7 @@ class Travel {
       distance_km,
       duration,
       available_seats,
-      id_busStation_derpatureLocation,
+      id_busStation_departureLocation,
       id_busStation_arrivalLocation
     );
   }
