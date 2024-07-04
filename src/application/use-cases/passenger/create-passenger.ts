@@ -3,6 +3,7 @@ import { Either, failure, success } from "@/utils/either";
 import { PassengerRepository } from "@/adapters/repositories/passenger-repository";
 import { TravelRepository } from "@/adapters/repositories/travel-repository";
 import { NotFoundError } from "../errors/not-found-error";
+import { ConflictError } from "../errors/conflict-error";
 
 type CreatePassengerRequest = {
   name: string;
@@ -22,11 +23,17 @@ class CreatePassenger {
     rg,
     seat,
     id_travel,
-  }: CreatePassengerRequest): Promise<Either<NotFoundError, Passenger>> {
+  }: CreatePassengerRequest): Promise<Either<NotFoundError | ConflictError, Passenger>> {
     const travelExists = await this.travelRepository.findById(id_travel);
 
     if (!travelExists) {
       return failure(new NotFoundError(`Nenhuma viagem encontrada com o ID: ${id_travel}`));
+    }
+
+    const rgExists = await this.passengerRepository.findByRg(rg);
+
+    if (rgExists) {
+      return failure(new ConflictError(`Esse rg já está cadastrado`));
     }
 
     const passengerCreated = Passenger.create(name, rg, seat, id_travel);

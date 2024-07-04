@@ -61,6 +61,20 @@ class CreateTravel {
       );
     }
 
+    const departure_dateValid =
+      departure_date >
+      new Date(
+        `${new Date().getFullYear()}-${
+          new Date().getMonth() + 1 <= 12 ? new Date().getMonth() + 1 : 12
+        }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}Z`
+      );
+
+    console.log(departure_dateValid);
+
+    if (!departure_dateValid) {
+      return failure(new BadRequestError(`A data informada é anterior ao dia de hoje`));
+    }
+
     const response = await this.fetch.post(
       "https://routes.googleapis.com/directions/v2:computeRoutes",
       {

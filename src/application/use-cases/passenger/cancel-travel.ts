@@ -32,9 +32,16 @@ class CancelTravel {
       );
     }
 
-    const diffInHours = passengerExists.cancelTravel(travelExists.derpatureDate, new Date());
+    const isPossibleCancelTravel = passengerExists.cancelTravel(
+      travelExists.departure_date,
+      new Date(
+        `${new Date().getFullYear()}-${
+          new Date().getMonth() + 1 <= 12 ? new Date().getMonth() + 1 : 12
+        }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}Z`
+      )
+    );
 
-    if (diffInHours <= 1) {
+    if (!isPossibleCancelTravel) {
       return failure(
         new BadRequestError(`O cancelamento só pode ser feito até 1 hora antes do embarque`)
       );

@@ -1,57 +1,59 @@
 import { Travel } from "@/core/entities/travel";
-import { BusStation } from "@/core/entities/bus-station";
 import { TravelRepository } from "@/adapters/repositories/travel-repository";
+import { BusStation } from "@/core/entities/bus-station";
 
 class InMemoryTravelRepository implements TravelRepository {
   private travels: Travel[] = [];
-  private busStations: BusStation[] = [
-    {
-      id: 1,
-      name: "Rodoviária do Tiête",
-      city: "São Paulo",
-      uf: "SP",
-    },
-    {
-      id: 2,
-      name: "Rodoviária de Embu das Artes",
-      city: "São Paulo",
-      uf: "SP",
-    },
-    {
-      id: 3,
-      name: "Rodoviária Américo Fontenelle",
-      city: "Rio de Janeiro",
-      uf: "RJ",
-    },
-  ];
+  private busStations: BusStation[] = [];
 
   public async findAll(): Promise<Travel[]> {
     return this.travels;
   }
 
   public async findByOriginCity(city: string): Promise<Travel[]> {
-    const travels = this.travels.filter((travel) => {
-      this.busStations[travel.id_busStation_departureLocation].city === city;
+    const busStations = this.busStations.filter((busStation) => busStation.city === city);
+
+    let travelsValids: Travel[] = [];
+
+    this.travels.filter((travel) => {
+      busStations.forEach((busStation) => {
+        if (busStation.id === travel.id_busStation_departureLocation) travelsValids.push(travel);
+      });
     });
 
-    return travels;
+    return travelsValids;
   }
 
   public async findByDestinationCity(city: string): Promise<Travel[]> {
-    const travels = this.travels.filter((travel) => {
-      this.busStations[travel.id_busStation_arrivalLocation].city === city;
+    const busStations = this.busStations.filter((busStation) => busStation.city === city);
+
+    let travelsValids: Travel[] = [];
+
+    this.travels.filter((travel) => {
+      busStations.forEach((busStation) => {
+        if (busStation.id === travel.id_busStation_arrivalLocation) travelsValids.push(travel);
+      });
     });
 
-    return travels;
+    return travelsValids;
   }
 
   public async findByDepartureDate(date: Date, city: string): Promise<Travel[]> {
-    const travels = this.travels.filter((travel) => {
-      this.busStations[travel.id_busStation_arrivalLocation].city === city &&
-        travel.departure_date === date;
+    const busStations = this.busStations.filter((busStation) => busStation.city === city);
+
+    let travelsValids: Travel[] = [];
+
+    this.travels.filter((travel) => {
+      busStations.forEach((busStation) => {
+        if (
+          busStation.id === travel.id_busStation_departureLocation &&
+          travel.departure_date.getDay() === date.getDay()
+        )
+          travelsValids.push(travel);
+      });
     });
 
-    return travels;
+    return travelsValids;
   }
 
   public async findById(id: number): Promise<Travel | null> {
@@ -91,6 +93,10 @@ class InMemoryTravelRepository implements TravelRepository {
     this.travels.splice(travelIndex, 1);
 
     return travel;
+  }
+
+  public async addBusStation(busStations: BusStation[]) {
+    busStations.forEach((busStation) => this.busStations.push(busStation));
   }
 }
 

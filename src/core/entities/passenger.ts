@@ -19,11 +19,15 @@ class Passenger {
     const exitTime = exitDate.getTime();
     const currentTime = currentDate.getTime();
 
-    const diffInMs = Math.abs(exitTime - currentTime);
+    if (currentDate > exitDate) {
+      return false;
+    }
 
-    const diffInHours = diffInMs / (1000 * 60 * 60);
+    const diffInMs = Math.abs(currentTime - exitTime);
 
-    return diffInHours;
+    const diffInHours = Math.floor((diffInMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+    return diffInHours >= 1 ? true : false;
   }
 }
 

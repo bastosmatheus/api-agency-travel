@@ -37,10 +37,9 @@ class CreateBusStation {
 
     const busStationValid = response.places[0];
     const types = busStationValid.types;
-    const formattedAddress = busStationValid.displayName.text;
     const typesValids =
       types.includes("bus_station") ||
-      types.includes("agency_travel") ||
+      types.includes("travel_agency") ||
       types.includes("bus_stop") ||
       types.includes("transit_station");
 
@@ -48,7 +47,7 @@ class CreateBusStation {
       return failure(new BadRequestError(`O local pesquisado não é uma rodoviária`));
     }
 
-    const busStationCreated = BusStation.create(formattedAddress, city, uf);
+    const busStationCreated = BusStation.create(name, city, uf);
     const busStation = await this.busStationRepository.create(busStationCreated);
 
     return success(busStation);
