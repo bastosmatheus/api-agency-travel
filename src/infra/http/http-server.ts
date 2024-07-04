@@ -64,4 +64,4 @@ class ExpressAdapter implements HttpServer {
   }
 }
 
-export { ExpressAdapter };
+export { ExpressAdapter, HttpServer };
