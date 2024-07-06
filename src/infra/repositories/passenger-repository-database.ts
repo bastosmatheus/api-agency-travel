@@ -11,25 +11,6 @@ class PassengerRepositoryDatabase implements PassengerRepository {
     return passengers;
   }
 
-  public async findByRg(rg: string): Promise<Passenger | null> {
-    const [passenger] = await this.databaseConnection.query(
-      "SELECT * FROM passengers WHERE rg = $1",
-      [rg]
-    );
-
-    if (!passenger) {
-      return null;
-    }
-
-    return Passenger.restore(
-      passenger.id,
-      passenger.name,
-      passenger.rg,
-      passenger.seat,
-      passenger.id_travel
-    );
-  }
-
   public async findById(id: number): Promise<Passenger | null> {
     const [passenger] = await this.databaseConnection.query(
       "SELECT * FROM passengers WHERE id = $1",
@@ -42,17 +23,17 @@ class PassengerRepositoryDatabase implements PassengerRepository {
 
     return Passenger.restore(
       passenger.id,
-      passenger.name,
-      passenger.rg,
       passenger.seat,
-      passenger.id_travel
+      passenger.payment,
+      passenger.id_travel,
+      passenger.id_user
     );
   }
 
   public async create(passenger: Passenger): Promise<Passenger> {
     const [passengerData] = await this.databaseConnection.query(
-      "INSERT INTO passengers (name, rg, seat, id_travel) VALUES ($1, $2, $3, $4) RETURNING *",
-      [passenger.name, passenger.rg, passenger.seat, passenger.id_travel]
+      "INSERT INTO passengers (seat, payment, id_travel, id_user) VALUES ($1, $2, $3, $4) RETURNING *",
+      [passenger.seat, passenger.payment, passenger.id_travel, passenger.id_user]
     );
 
     return passengerData;

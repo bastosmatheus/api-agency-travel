@@ -69,8 +69,6 @@ class CreateTravel {
         }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}Z`
       );
 
-    console.log(departure_dateValid);
-
     if (!departure_dateValid) {
       return failure(new BadRequestError(`A data informada é anterior ao dia de hoje`));
     }

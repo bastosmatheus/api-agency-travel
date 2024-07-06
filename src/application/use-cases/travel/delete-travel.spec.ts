@@ -55,7 +55,7 @@ describe("delete travel", () => {
     const id_busStation_arrivalLocation = busStationArrival.value.id as number;
 
     const travelCreated = await createTravel.execute({
-      departure_date: new Date("2024-07-04 20:00:00Z"),
+      departure_date: new Date("2024-07-10 20:00:00Z"),
       bus_seat: "Leito",
       price: 150,
       id_busStation_departureLocation,
@@ -95,7 +95,7 @@ describe("delete travel", () => {
     const id_busStation_arrivalLocation = busStationArrival.value.id as number;
 
     await createTravel.execute({
-      departure_date: new Date("2024-07-04 20:00:00Z"),
+      departure_date: new Date("2024-07-10 20:00:00Z"),
       bus_seat: "Leito",
       price: 150,
       id_busStation_departureLocation,

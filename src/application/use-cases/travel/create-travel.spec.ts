@@ -6,6 +6,7 @@ import { InMemoryBusStationRepository } from "@/infra/repositories/in-memory/in-
 import { FetchAdapter } from "@/infra/fetch/fetch";
 import { NotFoundError } from "../errors/not-found-error";
 import { ConflictError } from "../errors/conflict-error";
+import { BadRequestError } from "../errors/bad-request-error";
 
 function setup() {
   const travelRepository = new InMemoryTravelRepository();
@@ -53,7 +54,7 @@ describe("create a new travel", () => {
     const id_busStation_arrivalLocation = busStationArrival.value.id as number;
 
     const travel = await createTravel.execute({
-      departure_date: new Date("2024-07-04 20:00:00Z"),
+      departure_date: new Date("2024-07-10 20:00:00Z"),
       bus_seat: "Leito",
       price: 150,
       id_busStation_departureLocation,
@@ -83,7 +84,7 @@ describe("create a new travel", () => {
     const id_busStation_arrivalLocation = busStationArrival.value.id as number;
 
     const travel = await createTravel.execute({
-      departure_date: new Date("2024-07-04 20:00:00Z"),
+      departure_date: new Date("2024-07-10 20:00:00Z"),
       bus_seat: "Leito",
       price: 150,
       id_busStation_departureLocation: 12930183912,
@@ -114,7 +115,7 @@ describe("create a new travel", () => {
     });
 
     const travel = await createTravel.execute({
-      departure_date: new Date("2024-07-04 20:00:00Z"),
+      departure_date: new Date("2024-07-10 20:00:00Z"),
       bus_seat: "Leito",
       price: 150,
       id_busStation_departureLocation,
@@ -139,7 +140,7 @@ describe("create a new travel", () => {
     const id_busStation = busStation.value.id as number;
 
     const travel = await createTravel.execute({
-      departure_date: new Date("2024-07-04 20:00:00Z"),
+      departure_date: new Date("2024-07-10 20:00:00Z"),
       bus_seat: "Leito",
       price: 150,
       id_busStation_departureLocation: id_busStation,
@@ -148,5 +149,40 @@ describe("create a new travel", () => {
 
     expect(travel.isFailure()).toBe(true);
     expect(travel.value).toBeInstanceOf(ConflictError);
+  });
+
+  it("should be possible to create a travel", async () => {
+    const { createBusStation, createTravel } = useCases;
+
+    const busStationDeparture = await createBusStation.execute({
+      name: "Rodoviária do Tiête",
+      city: "São Paulo",
+      uf: "SP",
+    });
+
+    if (busStationDeparture.isFailure()) return;
+
+    const id_busStation_departureLocation = busStationDeparture.value.id as number;
+
+    const busStationArrival = await createBusStation.execute({
+      name: "Rodoviária de Vila Velha",
+      city: "Vila Velha",
+      uf: "ES",
+    });
+
+    if (busStationArrival.isFailure()) return;
+
+    const id_busStation_arrivalLocation = busStationArrival.value.id as number;
+
+    const travel = await createTravel.execute({
+      departure_date: new Date("2024-07-03 20:00:00Z"),
+      bus_seat: "Leito",
+      price: 150,
+      id_busStation_departureLocation,
+      id_busStation_arrivalLocation,
+    });
+
+    expect(travel.isFailure()).toBe(true);
+    expect(travel.value).toBeInstanceOf(BadRequestError);
   });
 });

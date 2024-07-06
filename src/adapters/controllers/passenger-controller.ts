@@ -2,7 +2,6 @@ import {
   CancelTravel,
   CreatePassenger,
   FindPassengerById,
-  FindPassengerByRg,
   FindPassengers,
 } from "@/application/use-cases/passenger";
 import { Passenger } from "@/core/entities/passenger";
@@ -14,7 +13,6 @@ class PassengerController {
     private httpServer: HttpServer,
     private findPassengers: FindPassengers,
     private findPassengerById: FindPassengerById,
-    private findPassengerByRg: FindPassengerByRg,
     private createPassenger: CreatePassenger,
     private cancelTravel: CancelTravel
   ) {
@@ -60,56 +58,8 @@ class PassengerController {
       };
     });
 
-    this.httpServer.on(
-      "get",
-      "/passengers/rg/:rg",
-      async (params: { rg: string }, body: unknown) => {
-        const findByRgSchema = z.object({
-          rg: z
-            .string({
-              invalid_type_error: "O rg deve ser uma string",
-              required_error: "Informe o rg",
-            })
-            .length(9, { message: "O rg deve ter 9 dígitos" }),
-        });
-
-        const { rg } = params;
-        findByRgSchema.parse({ rg });
-
-        const passenger = await this.findPassengerByRg.execute({ rg });
-
-        if (passenger.isFailure()) {
-          return {
-            type: passenger.value.type,
-            statusCode: passenger.value.statusCode,
-            message: passenger.value.message,
-          };
-        }
-
-        return {
-          type: "OK",
-          statusCode: 200,
-          passenger: {
-            ...passenger.value,
-          },
-        };
-      }
-    );
-
     this.httpServer.on("post", "/passengers", async (params: unknown, body: Passenger) => {
       const createSchema = z.object({
-        name: z
-          .string({
-            invalid_type_error: "O nome deve ser uma string",
-            required_error: "Informe o nome",
-          })
-          .min(2, { message: "O nome deve conter no minimo 2 caracteres" }),
-        rg: z
-          .string({
-            invalid_type_error: "O rg deve ser uma string",
-            required_error: "Informe o rg",
-          })
-          .length(9, { message: "O rg deve ter 9 dígitos" }),
         seat: z
           .number({
             invalid_type_error: "O assento deve ser um número",
@@ -117,18 +67,45 @@ class PassengerController {
           })
           .min(1, { message: "Os assentos vão de 1 até 46" })
           .max(46, { message: "Os assentos vão de 1 até 46" }),
+        payment: z.enum(["Pix", "Cartão"], {
+          errorMap: (status, ctx) => {
+            if (status.code === "invalid_enum_value") {
+              return {
+                message: "Informe um tipo válido para forma de pagamento: Pix ou Cartão",
+              };
+            }
+
+            if (status.code === "invalid_type" && status.received === "undefined") {
+              return {
+                message: "Informe a forma de pagamento",
+              };
+            }
+
+            if (status.code === "invalid_type" && status.received !== "string") {
+              return {
+                message: "A forma de pagamento deve ser uma string",
+              };
+            }
+          },
+        }),
         id_travel: z
           .number({
             invalid_type_error: "O ID da viagem deve ser um número",
             required_error: "Informe o ID da viagem",
           })
-          .min(1, { message: "Informe um ID válido" }),
+          .min(1, { message: "Informe um ID da viagem válido" }),
+        id_user: z
+          .number({
+            invalid_type_error: "O ID do usuário deve ser um número",
+            required_error: "Informe o ID do usuário",
+          })
+          .min(1, { message: "Informe um ID de usuário válido" }),
       });
 
-      const { name, rg, seat, id_travel } = body;
-      createSchema.parse({ name, rg, seat, id_travel });
+      const { seat, payment, id_travel, id_user } = body;
+      createSchema.parse({ seat, payment, id_travel, id_user });
 
-      const passenger = await this.createPassenger.execute({ name, rg, seat, id_travel });
+      const passenger = await this.createPassenger.execute({ seat, payment, id_travel, id_user });
 
       if (passenger.isFailure()) {
         return {

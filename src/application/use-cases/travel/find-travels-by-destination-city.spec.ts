@@ -64,7 +64,7 @@ describe("find travels by destination city", () => {
     const id_busStation_arrivalLocation = busStationArrival.value.id as number;
 
     await createTravel.execute({
-      departure_date: new Date("2024-07-04 20:00:00Z"),
+      departure_date: new Date("2024-07-10 20:00:00Z"),
       bus_seat: "Leito",
       price: 150,
       id_busStation_departureLocation,
@@ -72,7 +72,7 @@ describe("find travels by destination city", () => {
     });
 
     await createTravel.execute({
-      departure_date: new Date("2024-07-04 20:00:00Z"),
+      departure_date: new Date("2024-07-10 20:00:00Z"),
       bus_seat: "Semi-leito",
       price: 300,
       id_busStation_departureLocation,

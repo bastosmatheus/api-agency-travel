@@ -8,22 +8,6 @@ class InMemoryPassengerRepository implements PassengerRepository {
     return this.passengers;
   }
 
-  public async findByRg(rg: string): Promise<Passenger | null> {
-    const passenger = this.passengers.find((passenger) => passenger.rg === rg);
-
-    if (!passenger) {
-      return null;
-    }
-
-    return Passenger.restore(
-      passenger.id as number,
-      passenger.name,
-      passenger.rg,
-      passenger.seat,
-      passenger.id_travel
-    );
-  }
-
   public async findById(id: number): Promise<Passenger | null> {
     const passenger = this.passengers.find((passenger) => passenger.id === id);
 
@@ -33,10 +17,10 @@ class InMemoryPassengerRepository implements PassengerRepository {
 
     return Passenger.restore(
       passenger.id as number,
-      passenger.name,
-      passenger.rg,
       passenger.seat,
-      passenger.id_travel
+      passenger.payment,
+      passenger.id_travel,
+      passenger.id_user
     );
   }
 
