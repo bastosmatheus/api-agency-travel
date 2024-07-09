@@ -8,6 +8,7 @@ import {
 } from "@/application/use-cases/bus-station";
 import { BusStation } from "@/core/entities/bus-station";
 import { HttpServer } from "@/infra/http/http-server";
+import { AdminMiddleware } from "@/infra/middlewares/admin-middleware";
 import { z } from "zod";
 
 class BusStationController {
@@ -20,7 +21,7 @@ class BusStationController {
     private createBusStation: CreateBusStation,
     private deleteBusStation: DeleteBusStation
   ) {
-    this.httpServer.on("get", "/bus-stations", async () => {
+    this.httpServer.on("get", [], "/bus-stations", async () => {
       const busStations = await this.findBusStations.execute();
 
       return {
@@ -32,6 +33,7 @@ class BusStationController {
 
     this.httpServer.on(
       "get",
+      [],
       "/bus-stations/city",
       async (params: unknown, body: unknown, query: { city: string }) => {
         const findByCitySchema = z.object({
@@ -60,6 +62,7 @@ class BusStationController {
 
     this.httpServer.on(
       "get",
+      [],
       "/bus-stations/name",
       async (params: unknown, body: unknown, query: { name: string }) => {
         const findByNameSchema = z.object({
@@ -96,6 +99,7 @@ class BusStationController {
 
     this.httpServer.on(
       "get",
+      [],
       "/bus-stations/:id",
       async (params: { id: string }, body: unknown) => {
         const findByIdSchema = z.object({
@@ -130,53 +134,59 @@ class BusStationController {
       }
     );
 
-    this.httpServer.on("post", "/bus-stations", async (params: unknown, body: BusStation) => {
-      const createSchema = z.object({
-        name: z
-          .string({
-            invalid_type_error: "O nome da rodoviária deve ser uma string",
-            required_error: "Informe o nome da rodoviária",
-          })
-          .min(2, { message: "O nome da rodoviária deve ter no mínimo 2 caracteres" }),
-        city: z
-          .string({
-            invalid_type_error: "A cidade deve ser uma string",
-            required_error: "Informe o nome da cidade",
-          })
-          .min(2, { message: "O nome da cidade deve ter no mínimo 2 caracteres" }),
-        uf: z
-          .string({
-            invalid_type_error: "A unidade federativa deve ser uma string",
-            required_error: "Informe a unidade federativa",
-          })
-          .length(2, { message: "A unidade federativa deve ter 2 caracteres" }),
-      });
+    this.httpServer.on(
+      "post",
+      [AdminMiddleware.verifyToken],
+      "/bus-stations",
+      async (params: unknown, body: BusStation) => {
+        const createSchema = z.object({
+          name: z
+            .string({
+              invalid_type_error: "O nome da rodoviária deve ser uma string",
+              required_error: "Informe o nome da rodoviária",
+            })
+            .min(2, { message: "O nome da rodoviária deve ter no mínimo 2 caracteres" }),
+          city: z
+            .string({
+              invalid_type_error: "A cidade deve ser uma string",
+              required_error: "Informe o nome da cidade",
+            })
+            .min(2, { message: "O nome da cidade deve ter no mínimo 2 caracteres" }),
+          uf: z
+            .string({
+              invalid_type_error: "A unidade federativa deve ser uma string",
+              required_error: "Informe a unidade federativa",
+            })
+            .length(2, { message: "A unidade federativa deve ter 2 caracteres" }),
+        });
 
-      const { name, city, uf } = body;
-      createSchema.parse({ name, city, uf });
+        const { name, city, uf } = body;
+        createSchema.parse({ name, city, uf });
 
-      const busStation = await this.createBusStation.execute({ name, city, uf });
+        const busStation = await this.createBusStation.execute({ name, city, uf });
 
-      if (busStation.isFailure()) {
+        if (busStation.isFailure()) {
+          return {
+            type: busStation.value.type,
+            statusCode: busStation.value.statusCode,
+            message: busStation.value.message,
+          };
+        }
+
         return {
-          type: busStation.value.type,
-          statusCode: busStation.value.statusCode,
-          message: busStation.value.message,
+          message: "Rodoviária registrada",
+          type: "Created",
+          statusCode: 201,
+          busStation: {
+            ...busStation.value,
+          },
         };
       }
-
-      return {
-        message: "Rodoviária registrada",
-        type: "Created",
-        statusCode: 201,
-        busStation: {
-          ...busStation.value,
-        },
-      };
-    });
+    );
 
     this.httpServer.on(
       "delete",
+      [AdminMiddleware.verifyToken],
       "/bus-stations/:id",
       async (params: { id: string }, body: unknown) => {
         const deleteSchema = z.object({

@@ -9,10 +9,13 @@ import {
   FindUserById,
   FindUserByTelephone,
   FindUsers,
+  LoginUser,
   UpdatePasswordUser,
   UpdateTelephone,
   UpdateUser,
 } from "@/application/use-cases/user";
+import { AdminMiddleware } from "@/infra/middlewares/admin-middleware";
+import { AuthMiddleware } from "@/infra/middlewares/auth-middleware";
 
 class UserController {
   constructor(
@@ -23,12 +26,13 @@ class UserController {
     private findUserByCpf: FindUserByCpf,
     private findUserByTelephone: FindUserByTelephone,
     private createUser: CreateUser,
+    private loginUser: LoginUser,
     private updateUser: UpdateUser,
     private updateTelephone: UpdateTelephone,
     private updatePasswordUser: UpdatePasswordUser,
     private deleteUser: DeleteUser
   ) {
-    this.httpServer.on("get", "/users", async () => {
+    this.httpServer.on("get", [], "/users", async () => {
       const users = await this.findUsers.execute();
 
       return {
@@ -40,6 +44,7 @@ class UserController {
 
     this.httpServer.on(
       "get",
+      [AdminMiddleware.verifyToken],
       "/users/email",
       async (params: unknown, body: unknown, query: { email: string }) => {
         const findByEmailSchema = z.object({
@@ -76,6 +81,7 @@ class UserController {
 
     this.httpServer.on(
       "get",
+      [AdminMiddleware.verifyToken],
       "/users/cpf",
       async (params: unknown, body: unknown, query: { cpf: string }) => {
         const findByCpfSchema = z.object({
@@ -112,6 +118,7 @@ class UserController {
 
     this.httpServer.on(
       "get",
+      [AdminMiddleware.verifyToken],
       "/users/telephone",
       async (params: unknown, body: unknown, query: { telephone: string }) => {
         const findByTelephoneSchema = z.object({
@@ -146,39 +153,44 @@ class UserController {
       }
     );
 
-    this.httpServer.on("get", "/users/:id", async (params: { id: string }, body: unknown) => {
-      const findByIdSchema = z.object({
-        id: z
-          .number({
-            invalid_type_error: "O ID deve ser um número",
-            required_error: "Informe o ID",
-          })
-          .min(1, { message: "Informe um ID válido" }),
-      });
+    this.httpServer.on(
+      "get",
+      [AuthMiddleware.verifyToken],
+      "/users/:id",
+      async (params: { id: string }, body: unknown) => {
+        const findByIdSchema = z.object({
+          id: z
+            .number({
+              invalid_type_error: "O ID deve ser um número",
+              required_error: "Informe o ID",
+            })
+            .min(1, { message: "Informe um ID válido" }),
+        });
 
-      const { id } = params;
-      findByIdSchema.parse({ id: Number(id) });
+        const { id } = params;
+        findByIdSchema.parse({ id: Number(id) });
 
-      const user = await this.findUserById.execute({ id: Number(id) });
+        const user = await this.findUserById.execute({ id: Number(id) });
 
-      if (user.isFailure()) {
+        if (user.isFailure()) {
+          return {
+            type: user.value.type,
+            statusCode: user.value.statusCode,
+            message: user.value.message,
+          };
+        }
+
         return {
-          type: user.value.type,
-          statusCode: user.value.statusCode,
-          message: user.value.message,
+          type: "OK",
+          statusCode: 200,
+          user: {
+            ...user.value,
+          },
         };
       }
+    );
 
-      return {
-        type: "OK",
-        statusCode: 200,
-        user: {
-          ...user.value,
-        },
-      };
-    });
-
-    this.httpServer.on("post", "/users", async (params: unknown, body: User) => {
+    this.httpServer.on("post", [], "/users", async (params: unknown, body: User) => {
       const createSchema = z.object({
         name: z
           .string({
@@ -235,48 +247,89 @@ class UserController {
       };
     });
 
-    this.httpServer.on("patch", "/users/:id/name", async (params: { id: string }, body: User) => {
-      const updateNameSchema = z.object({
-        id: z
-          .number({
-            invalid_type_error: "O ID deve ser um número",
-            required_error: "Informe o ID",
-          })
-          .min(1, { message: "Informe um ID válido" }),
-        name: z
+    this.httpServer.on("post", [], "/users/login", async (params: unknown, body: User) => {
+      const createSchema = z.object({
+        email: z
           .string({
-            invalid_type_error: "O nome deve ser uma string",
-            required_error: "Informe o nome",
+            invalid_type_error: "O email deve ser uma string",
+            required_error: "Informe o email",
           })
-          .min(2, { message: "O nome deve conter no minimo 2 caracteres" }),
+          .email({ message: "Informe um email válido" }),
+        password: z.string({
+          invalid_type_error: "A senha deve ser uma string",
+          required_error: "Informe a senha",
+        }),
       });
 
-      const { id } = params;
-      const { name } = body;
-      updateNameSchema.parse({ id: Number(id), name });
+      const { email, password } = body;
+      createSchema.parse({ email, password });
 
-      const user = await this.updateUser.execute({ id: Number(id), name });
+      const token = await this.loginUser.execute({ email, password });
 
-      if (user.isFailure()) {
+      if (token.isFailure()) {
         return {
-          type: user.value.type,
-          statusCode: user.value.statusCode,
-          message: user.value.message,
+          type: token.value.type,
+          statusCode: token.value.statusCode,
+          message: token.value.message,
         };
       }
 
       return {
-        message: "Usuário atualizado",
+        message: "Usuário logado",
         type: "OK",
         statusCode: 200,
-        user: {
-          ...user.value,
-        },
+        token: token.value,
       };
     });
 
     this.httpServer.on(
       "patch",
+      [AuthMiddleware.verifyToken],
+      "/users/:id/name",
+      async (params: { id: string }, body: User) => {
+        const updateNameSchema = z.object({
+          id: z
+            .number({
+              invalid_type_error: "O ID deve ser um número",
+              required_error: "Informe o ID",
+            })
+            .min(1, { message: "Informe um ID válido" }),
+          name: z
+            .string({
+              invalid_type_error: "O nome deve ser uma string",
+              required_error: "Informe o nome",
+            })
+            .min(2, { message: "O nome deve conter no minimo 2 caracteres" }),
+        });
+
+        const { id } = params;
+        const { name } = body;
+        updateNameSchema.parse({ id: Number(id), name });
+
+        const user = await this.updateUser.execute({ id: Number(id), name });
+
+        if (user.isFailure()) {
+          return {
+            type: user.value.type,
+            statusCode: user.value.statusCode,
+            message: user.value.message,
+          };
+        }
+
+        return {
+          message: "Usuário atualizado",
+          type: "OK",
+          statusCode: 200,
+          user: {
+            ...user.value,
+          },
+        };
+      }
+    );
+
+    this.httpServer.on(
+      "patch",
+      [AuthMiddleware.verifyToken],
       "/users/:id/telephone",
       async (params: { id: string }, body: User) => {
         const updateTelephoneSchema = z.object({
@@ -321,6 +374,7 @@ class UserController {
 
     this.httpServer.on(
       "patch",
+      [AuthMiddleware.verifyToken],
       "/users/:id/password",
       async (params: { id: string }, body: User) => {
         const updatePasswordSchema = z.object({
@@ -363,38 +417,43 @@ class UserController {
       }
     );
 
-    this.httpServer.on("delete", "/users/:id", async (params: { id: string }, body: unknown) => {
-      const deleteSchema = z.object({
-        id: z
-          .number({
-            invalid_type_error: "O ID deve ser um número",
-            required_error: "Informe o ID",
-          })
-          .min(1, { message: "Informe um ID válido" }),
-      });
+    this.httpServer.on(
+      "delete",
+      [AuthMiddleware.verifyToken],
+      "/users/:id",
+      async (params: { id: string }, body: unknown) => {
+        const deleteSchema = z.object({
+          id: z
+            .number({
+              invalid_type_error: "O ID deve ser um número",
+              required_error: "Informe o ID",
+            })
+            .min(1, { message: "Informe um ID válido" }),
+        });
 
-      const { id } = params;
-      deleteSchema.parse({ id: Number(id) });
+        const { id } = params;
+        deleteSchema.parse({ id: Number(id) });
 
-      const user = await this.deleteUser.execute({ id: Number(id) });
+        const user = await this.deleteUser.execute({ id: Number(id) });
 
-      if (user.isFailure()) {
+        if (user.isFailure()) {
+          return {
+            type: user.value.type,
+            statusCode: user.value.statusCode,
+            message: user.value.message,
+          };
+        }
+
         return {
-          type: user.value.type,
-          statusCode: user.value.statusCode,
-          message: user.value.message,
+          message: "Usuário excluido",
+          type: "OK",
+          statusCode: 200,
+          user: {
+            ...user.value,
+          },
         };
       }
-
-      return {
-        message: "Usuário excluido",
-        type: "OK",
-        statusCode: 200,
-        user: {
-          ...user.value,
-        },
-      };
-    });
+    );
   }
 }
 

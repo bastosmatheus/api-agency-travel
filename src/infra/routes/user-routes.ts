@@ -9,6 +9,7 @@ import {
   FindUserById,
   FindUserByTelephone,
   FindUsers,
+  LoginUser,
   UpdatePasswordUser,
   UpdateTelephone,
   UpdateUser,
@@ -16,6 +17,7 @@ import {
 import { UserRepositoryDatabase } from "../repositories/user-repository-database";
 import { HasherAndCompare } from "../cryptography/cryptography";
 import { UserController } from "@/adapters/controllers/user-controller";
+import { Token } from "../token/token";
 
 class UserRoutes {
   private userRepository: UserRepository;
@@ -23,7 +25,8 @@ class UserRoutes {
   constructor(
     private databaseConnection: DatabaseConnection,
     private httpServer: HttpServer,
-    private cryptography: HasherAndCompare
+    private cryptography: HasherAndCompare,
+    private token: Token
   ) {
     this.userRepository = new UserRepositoryDatabase(this.databaseConnection);
   }
@@ -35,6 +38,7 @@ class UserRoutes {
     const findUserByCpf = new FindUserByCpf(this.userRepository);
     const findUserByTelephone = new FindUserByTelephone(this.userRepository);
     const createUser = new CreateUser(this.userRepository, this.cryptography);
+    const loginUser = new LoginUser(this.userRepository, this.cryptography, this.token);
     const updateUser = new UpdateUser(this.userRepository);
     const updateUserTelephone = new UpdateTelephone(this.userRepository);
     const updatePasswordUser = new UpdatePasswordUser(this.userRepository, this.cryptography);
@@ -48,6 +52,7 @@ class UserRoutes {
       findUserByCpf,
       findUserByTelephone,
       createUser,
+      loginUser,
       updateUser,
       updateUserTelephone,
       updatePasswordUser,

@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 
 interface HasherAndCompare {
   hash(plaintextPassword: string): Promise<string>;
-  compare(password: string, plaintextPassword: string): void;
+  compare(password: string, plaintextPassword: string): Promise<boolean>;
 }
 
 class BcryptAdapter implements HasherAndCompare {

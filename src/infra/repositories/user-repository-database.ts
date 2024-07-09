@@ -42,7 +42,8 @@ class UserRepositoryDatabase implements UserRepository {
       SELECT
       users.id, 
       users.name, 
-      users.email, 
+      users.email,
+      users.password,
       users.cpf, 
       users.telephone, 
       COALESCE (
@@ -86,7 +87,8 @@ class UserRepositoryDatabase implements UserRepository {
       SELECT
       users.id, 
       users.name, 
-      users.email, 
+      users.email,
+      users.password,
       users.cpf, 
       users.telephone, 
       COALESCE (
@@ -130,7 +132,8 @@ class UserRepositoryDatabase implements UserRepository {
       SELECT
       users.id, 
       users.name, 
-      users.email, 
+      users.email,
+      users.password,
       users.cpf, 
       users.telephone, 
       COALESCE (
@@ -174,7 +177,8 @@ class UserRepositoryDatabase implements UserRepository {
       SELECT
       users.id, 
       users.name, 
-      users.email, 
+      users.email,
+      users.password,
       users.cpf, 
       users.telephone, 
       COALESCE (
