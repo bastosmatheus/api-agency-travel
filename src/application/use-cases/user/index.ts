@@ -8,3 +8,4 @@ export * from "./delete-user";
 export * from "./update-user";
 export * from "./update-password-user";
 export * from "./update-telephone";
+export * from "./login-user";

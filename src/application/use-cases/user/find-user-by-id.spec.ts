@@ -5,20 +5,30 @@ import { InMemoryUserRepository } from "@/infra/repositories/in-memory/in-memory
 import { describe, it, expect, beforeEach } from "vitest";
 import { FindUserById } from "./find-user-by-id";
 
-let userRepository: InMemoryUserRepository;
-let findUserById: FindUserById;
-let createUser: CreateUser;
-let cryptography: BcryptAdapter;
+function setup() {
+  const userRepository = new InMemoryUserRepository();
+
+  const cryptography = new BcryptAdapter();
+
+  const createUser = new CreateUser(userRepository, cryptography);
+  const findUserById = new FindUserById(userRepository);
+
+  return {
+    createUser,
+    findUserById,
+  };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("find user by id", () => {
   beforeEach(() => {
-    userRepository = new InMemoryUserRepository();
-    findUserById = new FindUserById(userRepository);
-    cryptography = new BcryptAdapter();
-    createUser = new CreateUser(userRepository, cryptography);
+    useCases = setup();
   });
 
   it("should be possible to find an user by id", async () => {
+    const { createUser, findUserById } = useCases;
+
     const userCreated = await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",
@@ -37,6 +47,8 @@ describe("find user by id", () => {
   });
 
   it("should not be possible to find if the user is not found", async () => {
+    const { createUser, findUserById } = useCases;
+
     await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",

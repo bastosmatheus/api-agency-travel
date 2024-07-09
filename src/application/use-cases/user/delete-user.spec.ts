@@ -5,20 +5,29 @@ import { BcryptAdapter } from "@/infra/cryptography/cryptography";
 import { CreateUser } from "./create-user";
 import { NotFoundError } from "../errors/not-found-error";
 
-let userRepository: InMemoryUserRepository;
-let deleteUser: DeleteUser;
-let createUser: CreateUser;
-let cryptography: BcryptAdapter;
+function setup() {
+  const userRepository = new InMemoryUserRepository();
+
+  const cryptography = new BcryptAdapter();
+
+  const createUser = new CreateUser(userRepository, cryptography);
+  const deleteUser = new DeleteUser(userRepository);
+
+  return {
+    createUser,
+    deleteUser,
+  };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("delete an user", () => {
   beforeEach(() => {
-    userRepository = new InMemoryUserRepository();
-    cryptography = new BcryptAdapter();
-    createUser = new CreateUser(userRepository, cryptography);
-    deleteUser = new DeleteUser(userRepository);
+    useCases = setup();
   });
 
   it("should be possible to delete an user by id", async () => {
+    const { createUser, deleteUser } = useCases;
     const userCreated = await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",
@@ -37,6 +46,8 @@ describe("delete an user", () => {
   });
 
   it("should not be possible to delete if the user is not found", async () => {
+    const { createUser, deleteUser } = useCases;
+
     await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",

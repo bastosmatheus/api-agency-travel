@@ -5,20 +5,27 @@ import { FetchAdapter } from "@/infra/fetch/fetch";
 import { DeleteBusStation } from "./delete-bus-station";
 import { NotFoundError } from "../errors/not-found-error";
 
-let busStationRepository: InMemoryBusStationRepository;
-let createBusStation: CreateBusStation;
-let fetch: FetchAdapter;
-let deleteBusStation: DeleteBusStation;
+function setup() {
+  const busStationRepository = new InMemoryBusStationRepository();
+
+  const fetch = new FetchAdapter();
+
+  const createBusStation = new CreateBusStation(busStationRepository, fetch);
+  const deleteBusStation = new DeleteBusStation(busStationRepository);
+
+  return { createBusStation, deleteBusStation };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("delete a bus station", () => {
   beforeEach(() => {
-    busStationRepository = new InMemoryBusStationRepository();
-    fetch = new FetchAdapter();
-    createBusStation = new CreateBusStation(busStationRepository, fetch);
-    deleteBusStation = new DeleteBusStation(busStationRepository);
+    useCases = setup();
   });
 
   it("should be possible to delete a bus station", async () => {
+    const { createBusStation, deleteBusStation } = useCases;
+
     const busStationCreated = await createBusStation.execute({
       name: "Rodoviária do Tiête",
       city: "São Paulo",
@@ -35,6 +42,8 @@ describe("delete a bus station", () => {
   });
 
   it("should not be possible to delete if the bus station is not found", async () => {
+    const { createBusStation, deleteBusStation } = useCases;
+
     await createBusStation.execute({
       name: "Rodoviária do Tiête",
       city: "São Paulo",

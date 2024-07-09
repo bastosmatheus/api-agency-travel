@@ -5,18 +5,26 @@ import { FetchAdapter } from "@/infra/fetch/fetch";
 import { BadRequestError } from "../errors/bad-request-error";
 import { ConflictError } from "../errors/conflict-error";
 
-let busStationRepository: InMemoryBusStationRepository;
-let createBusStation: CreateBusStation;
-let fetch: FetchAdapter;
+function setup() {
+  const busStationRepository = new InMemoryBusStationRepository();
+
+  const fetch = new FetchAdapter();
+
+  const createBusStation = new CreateBusStation(busStationRepository, fetch);
+
+  return { createBusStation };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("create a new bus station", () => {
   beforeEach(() => {
-    busStationRepository = new InMemoryBusStationRepository();
-    fetch = new FetchAdapter();
-    createBusStation = new CreateBusStation(busStationRepository, fetch);
+    useCases = setup();
   });
 
   it("should be possible to create a bus station", async () => {
+    const { createBusStation } = useCases;
+
     const busStation = await createBusStation.execute({
       name: "Rodoviária do Tiête",
       city: "São Paulo",
@@ -27,6 +35,8 @@ describe("create a new bus station", () => {
   });
 
   it("should not be possible to create if the establishment is not bus station", async () => {
+    const { createBusStation } = useCases;
+
     const busStation = await createBusStation.execute({
       name: "Hamburgão",
       city: "São Paulo",
@@ -38,6 +48,8 @@ describe("create a new bus station", () => {
   });
 
   it("should not be possible to create if the bus station already exists", async () => {
+    const { createBusStation } = useCases;
+
     await createBusStation.execute({
       name: "Rodoviária do Tiête",
       city: "São Paulo",
@@ -55,6 +67,8 @@ describe("create a new bus station", () => {
   });
 
   it("should not be possible to create if the bus station does not exist", async () => {
+    const { createBusStation } = useCases;
+
     const busStation = await createBusStation.execute({
       name: "Lugar que não existe",
       city: "São Paulo",

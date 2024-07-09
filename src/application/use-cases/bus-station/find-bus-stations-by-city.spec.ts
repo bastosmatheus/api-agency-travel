@@ -4,20 +4,27 @@ import { CreateBusStation } from "./create-bus-station";
 import { FetchAdapter } from "@/infra/fetch/fetch";
 import { FindBusStationsByCity } from "./find-bus-stations-by-city";
 
-let busStationRepository: InMemoryBusStationRepository;
-let createBusStation: CreateBusStation;
-let fetch: FetchAdapter;
-let findBusStationsByCity: FindBusStationsByCity;
+function setup() {
+  const busStationRepository = new InMemoryBusStationRepository();
+
+  const fetch = new FetchAdapter();
+
+  const createBusStation = new CreateBusStation(busStationRepository, fetch);
+  const findBusStationsByCity = new FindBusStationsByCity(busStationRepository);
+
+  return { createBusStation, findBusStationsByCity };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("find bus stations by city", () => {
   beforeEach(() => {
-    busStationRepository = new InMemoryBusStationRepository();
-    fetch = new FetchAdapter();
-    createBusStation = new CreateBusStation(busStationRepository, fetch);
-    findBusStationsByCity = new FindBusStationsByCity(busStationRepository);
+    useCases = setup();
   });
 
   it("should be possible to find all bus stations by city", async () => {
+    const { createBusStation, findBusStationsByCity } = useCases;
+
     await createBusStation.execute({
       name: "Rodoviária do Tiête",
       city: "São Paulo",

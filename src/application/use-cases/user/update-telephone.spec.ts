@@ -5,20 +5,30 @@ import { BcryptAdapter } from "@/infra/cryptography/cryptography";
 import { NotFoundError } from "../errors/not-found-error";
 import { UpdateTelephone } from "./update-telephone";
 
-let userRepository: InMemoryUserRepository;
-let createUser: CreateUser;
-let updateTelephone: UpdateTelephone;
-let cryptography: BcryptAdapter;
+function setup() {
+  const userRepository = new InMemoryUserRepository();
+
+  const cryptography = new BcryptAdapter();
+
+  const createUser = new CreateUser(userRepository, cryptography);
+  const updateTelephone = new UpdateTelephone(userRepository);
+
+  return {
+    createUser,
+    updateTelephone,
+  };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("update user password", () => {
   beforeEach(() => {
-    userRepository = new InMemoryUserRepository();
-    cryptography = new BcryptAdapter();
-    createUser = new CreateUser(userRepository, cryptography);
-    updateTelephone = new UpdateTelephone(userRepository);
+    useCases = setup();
   });
 
   it("should be possible to update the user telephone", async () => {
+    const { createUser, updateTelephone } = useCases;
+
     const userCreated = await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",
@@ -37,6 +47,8 @@ describe("update user password", () => {
   });
 
   it("should not be possible to update if the user is not found", async () => {
+    const { createUser, updateTelephone } = useCases;
+
     await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",

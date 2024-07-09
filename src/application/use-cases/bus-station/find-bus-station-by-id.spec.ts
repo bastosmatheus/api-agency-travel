@@ -5,20 +5,27 @@ import { FetchAdapter } from "@/infra/fetch/fetch";
 import { NotFoundError } from "../errors/not-found-error";
 import { FindBusStationById } from "./find-bus-station-by-id";
 
-let busStationRepository: InMemoryBusStationRepository;
-let createBusStation: CreateBusStation;
-let fetch: FetchAdapter;
-let findBusStationById: FindBusStationById;
+function setup() {
+  const busStationRepository = new InMemoryBusStationRepository();
+
+  const fetch = new FetchAdapter();
+
+  const createBusStation = new CreateBusStation(busStationRepository, fetch);
+  const findBusStationById = new FindBusStationById(busStationRepository);
+
+  return { createBusStation, findBusStationById };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("find bus station by id", () => {
   beforeEach(() => {
-    busStationRepository = new InMemoryBusStationRepository();
-    fetch = new FetchAdapter();
-    createBusStation = new CreateBusStation(busStationRepository, fetch);
-    findBusStationById = new FindBusStationById(busStationRepository);
+    useCases = setup();
   });
 
   it("should be possible to find a bus station by id", async () => {
+    const { createBusStation, findBusStationById } = useCases;
+
     const busStationCreated = await createBusStation.execute({
       name: "Rodoviária do Tiête",
       city: "São Paulo",
@@ -35,6 +42,8 @@ describe("find bus station by id", () => {
   });
 
   it("should not be possible to find if the bus station is not found", async () => {
+    const { createBusStation, findBusStationById } = useCases;
+
     await createBusStation.execute({
       name: "Rodoviária do Tiête",
       city: "São Paulo",

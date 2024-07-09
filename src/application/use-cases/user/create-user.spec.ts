@@ -4,18 +4,28 @@ import { CreateUser } from "./create-user";
 import { BcryptAdapter } from "@/infra/cryptography/cryptography";
 import { ConflictError } from "../errors/conflict-error";
 
-let userRepository: InMemoryUserRepository;
-let createUser: CreateUser;
-let cryptography: BcryptAdapter;
+function setup() {
+  const userRepository = new InMemoryUserRepository();
+
+  const cryptography = new BcryptAdapter();
+
+  const createUser = new CreateUser(userRepository, cryptography);
+
+  return {
+    createUser,
+  };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("create a new user", () => {
   beforeEach(() => {
-    userRepository = new InMemoryUserRepository();
-    cryptography = new BcryptAdapter();
-    createUser = new CreateUser(userRepository, cryptography);
+    useCases = setup();
   });
 
   it("should be possible to create an user", async () => {
+    const { createUser } = useCases;
+
     const user = await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",
@@ -28,6 +38,8 @@ describe("create a new user", () => {
   });
 
   it("should not be possible to create an user if the email already exists", async () => {
+    const { createUser } = useCases;
+
     await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",
@@ -49,6 +61,8 @@ describe("create a new user", () => {
   });
 
   it("should not be possible to create an user if the cpf already exists", async () => {
+    const { createUser } = useCases;
+
     await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",
@@ -70,6 +84,8 @@ describe("create a new user", () => {
   });
 
   it("should not be possible to create an user if the telephone already exists", async () => {
+    const { createUser } = useCases;
+
     await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",

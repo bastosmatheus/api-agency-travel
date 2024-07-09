@@ -5,20 +5,29 @@ import { InMemoryUserRepository } from "@/infra/repositories/in-memory/in-memory
 import { describe, it, expect, beforeEach } from "vitest";
 import { FindUsers } from "./find-users";
 
-let userRepository: InMemoryUserRepository;
-let findUsers: FindUsers;
-let createUser: CreateUser;
-let cryptography: BcryptAdapter;
+function setup() {
+  const userRepository = new InMemoryUserRepository();
+
+  const cryptography = new BcryptAdapter();
+
+  const createUser = new CreateUser(userRepository, cryptography);
+  const findUsers = new FindUsers(userRepository);
+  return {
+    createUser,
+    findUsers,
+  };
+}
+
+let useCases: ReturnType<typeof setup>;
 
 describe("find users", () => {
   beforeEach(() => {
-    userRepository = new InMemoryUserRepository();
-    findUsers = new FindUsers(userRepository);
-    cryptography = new BcryptAdapter();
-    createUser = new CreateUser(userRepository, cryptography);
+    useCases = setup();
   });
 
   it("should be possible to find all users", async () => {
+    const { createUser, findUsers } = useCases;
+
     await createUser.execute({
       name: "Matheus",
       email: "matheus@gmail.com",
