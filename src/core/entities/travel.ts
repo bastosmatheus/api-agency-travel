@@ -87,7 +87,9 @@ class Travel {
       );
     }
 
-    this.available_seats.splice(this.available_seats[index - 1], 1);
+    this.available_seats.splice(index, 1);
+
+    return this.available_seats.sort((a, b) => a - b);
   }
 
   public updateAvailableSeatsIfCanceled(seat: number) {

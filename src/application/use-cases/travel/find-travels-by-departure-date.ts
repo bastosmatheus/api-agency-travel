@@ -1,7 +1,7 @@
 import { TravelRepository } from "@/adapters/repositories/travel-repository";
 
 type FindTravelsByDepartureDateRequest = {
-  date: Date;
+  date: string;
   city: string;
 };
 

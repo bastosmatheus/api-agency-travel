@@ -38,9 +38,10 @@ class CreatePassenger {
       return failure(new NotFoundError(`Nenhum usuário encontrado com o ID: ${id_user}`));
     }
 
+    const available_seats = travelExists.updateAvailableSeats(seat);
     const passengerCreated = Passenger.create(seat, payment, id_travel, id_user);
     const passenger = await this.passengerRepository.create(passengerCreated);
-    travelExists.updateAvailableSeats(seat);
+    await this.travelRepository.updateAvailableSeats(travelExists.id as number, available_seats);
 
     return success(passenger);
   }

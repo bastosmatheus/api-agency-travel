@@ -49,6 +49,10 @@ class CancelTravel {
 
     const passenger = await this.passengerRepository.delete(id);
     travelExists.updateAvailableSeatsIfCanceled(passengerExists.seat);
+    await this.travelRepository.updateAvailableSeats(
+      travelExists.id as number,
+      travelExists.available_seats
+    );
 
     return success(passenger);
   }

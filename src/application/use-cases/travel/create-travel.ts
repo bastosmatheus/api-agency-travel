@@ -8,7 +8,7 @@ import { BusStationRepository } from "@/adapters/repositories/bus-station-reposi
 import { ConflictError } from "../errors/conflict-error";
 
 type CreateTravelRequest = {
-  departure_date: Date;
+  departure_date: string;
   bus_seat: string;
   price: number;
   id_busStation_departureLocation: number;
@@ -62,7 +62,7 @@ class CreateTravel {
     }
 
     const departure_dateValid =
-      departure_date >
+      new Date(departure_date) >
       new Date(
         `${new Date().getFullYear()}-${
           new Date().getMonth() + 1 <= 12 ? new Date().getMonth() + 1 : 12
@@ -93,8 +93,11 @@ class CreateTravel {
       return failure(new BadRequestError(`Local repetido`));
     }
 
+    const departureDate = new Date(departure_date);
     const travelValid = response.routes[0];
-    const distanceKm = travelValid.localizedValues.distance.text.split(" ")[0];
+    const distanceKm = Number(
+      travelValid.localizedValues.distance.text.split(" ")[0].replace(",", ".")
+    );
     const durationInSeconds = travelValid.duration.replace("s", "");
     const newDate = new Date(departure_date);
     // pegando o tempo de viagem total
@@ -102,7 +105,7 @@ class CreateTravel {
     // adicionando o tempo de viagem a hora de saida, retornando a hora de chegada
     const arrivalDate = new Date(newDate.setTime(timestamp));
     // calculando a diferença de horas entre a data de saida e a de chegada (milisegundos)
-    const diffMiliseconds = Math.abs(departure_date.getTime() - arrivalDate.getTime());
+    const diffMiliseconds = Math.abs(departureDate.getTime() - arrivalDate.getTime());
     // convertendo a diferença de milisegundos p horas e minutos
     const diffHours = Math.floor(diffMiliseconds / (1000 * 60 * 60));
     const diffMinutes = Math.floor((diffMiliseconds % (1000 * 60 * 60)) / (1000 * 60));
@@ -110,7 +113,7 @@ class CreateTravel {
     const duration = `${diffHours}h ${diffMinutes}m`;
 
     const travelCreated = Travel.create(
-      departure_date,
+      departureDate,
       arrivalDate,
       bus_seat,
       price,
