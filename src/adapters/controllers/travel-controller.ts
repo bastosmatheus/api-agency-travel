@@ -34,18 +34,18 @@ class TravelController {
 
     this.httpServer.on(
       "get",
-      "/travels/origin/:city",
-      async (params: { city: string }, body: unknown) => {
+      "/travels/origin",
+      async (params: unknown, body: unknown, query: { city: string }) => {
         const findByOriginCitySchema = z.object({
           city: z
             .string({
               invalid_type_error: "A cidade deve ser uma string",
-              required_error: "Informe o nome da cidade",
+              required_error: "Informe o nome da cidade em uma query string",
             })
             .min(2, { message: "O nome da cidade deve ter no mínimo 2 caracteres" }),
         });
 
-        const { city } = params;
+        const { city } = query;
         findByOriginCitySchema.parse({ city });
 
         const travels = await this.findTravelsByOriginCity.execute({ city });
@@ -60,8 +60,8 @@ class TravelController {
 
     this.httpServer.on(
       "get",
-      "/travels/destination/:city",
-      async (params: { city: string }, body: unknown) => {
+      "/travels/destination",
+      async (params: unknown, body: unknown, query: { city: string }) => {
         const findByDestinationCitySchema = z.object({
           city: z
             .string({
@@ -71,7 +71,7 @@ class TravelController {
             .min(2, { message: "O nome da cidade deve ter no mínimo 2 caracteres" }),
         });
 
-        const { city } = params;
+        const { city } = query;
         findByDestinationCitySchema.parse({ city });
 
         const travels = await this.findTravelsByDestinationCity.execute({ city });
@@ -86,34 +86,24 @@ class TravelController {
 
     this.httpServer.on(
       "get",
-      "/travels/city/:city",
-      async (params: { city: string }, body: unknown, query: { date: string }) => {
+      "/travels/date",
+      async (params: unknown, body: unknown, query: { date: string; city: string }) => {
         const findByDepartureDateSchema = z.object({
-          date: z
-            .string({
-              invalid_type_error: "A data deve ser uma string",
-              required_error: "Informe a data",
-            })
-            .datetime({
-              message: "Informe uma data válida (YYYY-MM-DD HH:MM:SSZ)",
-            }),
+          date: z.string().date("Informe uma data válida (YYYY-MM-DD)"),
           city: z
             .string({
               invalid_type_error: "A cidade deve ser uma string",
-              required_error: "Informe o nome da cidade",
+              required_error: "Informe o nome da cidade em uma query string",
             })
             .min(2, { message: "O nome da cidade deve ter no mínimo 2 caracteres" }),
         });
 
-        const { city } = params;
-        const { date } = query;
+        const { date, city } = query;
 
         findByDepartureDateSchema.parse({ date, city });
 
-        const dateFormatted = new Date(date);
-
         const travels = await this.findTravelsByDepartureDate.execute({
-          date: dateFormatted,
+          date,
           city,
         });
 
@@ -125,7 +115,7 @@ class TravelController {
       }
     );
 
-    this.httpServer.on("get", "/travels/:id", async (params: { id: number }, body: unknown) => {
+    this.httpServer.on("get", "/travels/:id", async (params: { id: string }, body: unknown) => {
       const findByIdSchema = z.object({
         id: z
           .number({
@@ -136,9 +126,9 @@ class TravelController {
       });
 
       const { id } = params;
-      findByIdSchema.parse({ id });
+      findByIdSchema.parse({ id: Number(id) });
 
-      const travel = await this.findTravelById.execute({ id });
+      const travel = await this.findTravelById.execute({ id: Number(id) });
 
       if (travel.isFailure()) {
         return {
@@ -225,7 +215,7 @@ class TravelController {
       });
 
       const travel = await this.createTravel.execute({
-        departure_date,
+        departure_date: String(departure_date),
         bus_seat,
         price,
         id_busStation_departureLocation,
@@ -250,7 +240,7 @@ class TravelController {
       };
     });
 
-    this.httpServer.on("delete", "/travels/:id", async (params: { id: number }, body: unknown) => {
+    this.httpServer.on("delete", "/travels/:id", async (params: { id: string }, body: unknown) => {
       const deleteSchema = z.object({
         id: z
           .number({
@@ -261,9 +251,9 @@ class TravelController {
       });
 
       const { id } = params;
-      deleteSchema.parse({ id });
+      deleteSchema.parse({ id: Number(id) });
 
-      const travel = await this.deleteTravel.execute({ id });
+      const travel = await this.deleteTravel.execute({ id: Number(id) });
 
       if (travel.isFailure()) {
         return {

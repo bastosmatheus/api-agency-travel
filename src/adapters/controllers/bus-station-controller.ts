@@ -32,18 +32,18 @@ class BusStationController {
 
     this.httpServer.on(
       "get",
-      "/bus-stations/city/:city",
-      async (params: { city: string }, body: unknown) => {
+      "/bus-stations/city",
+      async (params: unknown, body: unknown, query: { city: string }) => {
         const findByCitySchema = z.object({
           city: z
             .string({
               invalid_type_error: "A cidade deve ser uma string",
-              required_error: "Informe o nome da cidade",
+              required_error: "Informe o nome da cidade em uma query string",
             })
             .min(2, { message: "O nome da cidade deve ter no mínimo 2 caracteres" }),
         });
 
-        const { city } = params;
+        const { city } = query;
         findByCitySchema.parse({ city });
 
         const busStations = await this.findBusStationsByCity.execute({
@@ -60,21 +60,21 @@ class BusStationController {
 
     this.httpServer.on(
       "get",
-      "/bus-stations/:id",
-      async (params: { id: number }, body: unknown) => {
-        const findByIdSchema = z.object({
-          id: z
-            .number({
-              invalid_type_error: "O ID deve ser um número",
-              required_error: "Informe o ID",
+      "/bus-stations/name",
+      async (params: unknown, body: unknown, query: { name: string }) => {
+        const findByNameSchema = z.object({
+          name: z
+            .string({
+              invalid_type_error: "O nome da rodoviária deve ser uma string",
+              required_error: "Informe o nome da rodoviária em uma query string",
             })
-            .min(1, { message: "Informe um ID válido" }),
+            .min(2, { message: "O nome da rodoviária deve ter no mínimo 2 caracteres" }),
         });
 
-        const { id } = params;
-        findByIdSchema.parse({ id });
+        const { name } = query;
+        findByNameSchema.parse({ name });
 
-        const busStation = await this.findBusStationById.execute({ id });
+        const busStation = await this.findBusStationByName.execute({ name });
 
         if (busStation.isFailure()) {
           return {
@@ -96,21 +96,21 @@ class BusStationController {
 
     this.httpServer.on(
       "get",
-      "/bus-stations/name/:name",
-      async (params: { name: string }, body: unknown) => {
-        const findByNameSchema = z.object({
-          name: z
-            .string({
-              invalid_type_error: "O nome da rodoviária deve ser uma string",
-              required_error: "Informe o nome da rodoviária",
+      "/bus-stations/:id",
+      async (params: { id: string }, body: unknown) => {
+        const findByIdSchema = z.object({
+          id: z
+            .number({
+              invalid_type_error: "O ID deve ser um número",
+              required_error: "Informe o ID",
             })
-            .min(2, { message: "O nome da rodoviária deve ter no mínimo 2 caracteres" }),
+            .min(1, { message: "Informe um ID válido" }),
         });
 
-        const { name } = params;
-        findByNameSchema.parse({ name });
+        const { id } = params;
+        findByIdSchema.parse({ id: Number(id) });
 
-        const busStation = await this.findBusStationByName.execute({ name });
+        const busStation = await this.findBusStationById.execute({ id: Number(id) });
 
         if (busStation.isFailure()) {
           return {
@@ -178,7 +178,7 @@ class BusStationController {
     this.httpServer.on(
       "delete",
       "/bus-stations/:id",
-      async (params: { id: number }, body: unknown) => {
+      async (params: { id: string }, body: unknown) => {
         const deleteSchema = z.object({
           id: z
             .number({
@@ -189,9 +189,9 @@ class BusStationController {
         });
 
         const { id } = params;
-        deleteSchema.parse({ id });
+        deleteSchema.parse({ id: Number(id) });
 
-        const busStation = await this.deleteBusStation.execute({ id });
+        const busStation = await this.deleteBusStation.execute({ id: Number(id) });
 
         if (busStation.isFailure()) {
           return {

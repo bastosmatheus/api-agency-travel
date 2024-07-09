@@ -38,52 +38,20 @@ class UserController {
       };
     });
 
-    this.httpServer.on("get", "/users/:id", async (params: { id: number }, body: unknown) => {
-      const findByIdSchema = z.object({
-        id: z
-          .number({
-            invalid_type_error: "O ID deve ser um número",
-            required_error: "Informe o ID",
-          })
-          .min(1, { message: "Informe um ID válido" }),
-      });
-
-      const { id } = params;
-      findByIdSchema.parse({ id });
-
-      const user = await this.findUserById.execute({ id });
-
-      if (user.isFailure()) {
-        return {
-          type: user.value.type,
-          statusCode: user.value.statusCode,
-          message: user.value.message,
-        };
-      }
-
-      return {
-        type: "OK",
-        statusCode: 200,
-        user: {
-          ...user.value,
-        },
-      };
-    });
-
     this.httpServer.on(
       "get",
-      "/users/email/:email",
-      async (params: { email: string }, body: unknown) => {
+      "/users/email",
+      async (params: unknown, body: unknown, query: { email: string }) => {
         const findByEmailSchema = z.object({
           email: z
             .string({
               invalid_type_error: "O email deve ser uma string",
-              required_error: "Informe o email",
+              required_error: "Informe o email em uma query string",
             })
             .email({ message: "Informe um email válido" }),
         });
 
-        const { email } = params;
+        const { email } = query;
         findByEmailSchema.parse({ email });
 
         const user = await this.findUserByEmail.execute({ email });
@@ -106,52 +74,56 @@ class UserController {
       }
     );
 
-    this.httpServer.on("get", "/users/cpf/:cpf", async (params: { cpf: string }, body: unknown) => {
-      const findByCpfSchema = z.object({
-        cpf: z
-          .string({
-            invalid_type_error: "O cpf deve ser uma string",
-            required_error: "Informe o cpf",
-          })
-          .length(11, { message: "O cpf deve ter 11 dígitos" }),
-      });
+    this.httpServer.on(
+      "get",
+      "/users/cpf",
+      async (params: unknown, body: unknown, query: { cpf: string }) => {
+        const findByCpfSchema = z.object({
+          cpf: z
+            .string({
+              invalid_type_error: "O cpf deve ser uma string",
+              required_error: "Informe o cpf em uma query string",
+            })
+            .length(11, { message: "O cpf deve ter 11 dígitos" }),
+        });
 
-      const { cpf } = params;
-      findByCpfSchema.parse({ cpf });
+        const { cpf } = query;
+        findByCpfSchema.parse({ cpf });
 
-      const user = await this.findUserByCpf.execute({ cpf });
+        const user = await this.findUserByCpf.execute({ cpf });
 
-      if (user.isFailure()) {
+        if (user.isFailure()) {
+          return {
+            type: user.value.type,
+            statusCode: user.value.statusCode,
+            message: user.value.message,
+          };
+        }
+
         return {
-          type: user.value.type,
-          statusCode: user.value.statusCode,
-          message: user.value.message,
+          type: "OK",
+          statusCode: 200,
+          user: {
+            ...user.value,
+          },
         };
       }
-
-      return {
-        type: "OK",
-        statusCode: 200,
-        user: {
-          ...user.value,
-        },
-      };
-    });
+    );
 
     this.httpServer.on(
       "get",
-      "/users/telephone/:telephone",
-      async (params: { telephone: string }, body: unknown) => {
+      "/users/telephone",
+      async (params: unknown, body: unknown, query: { telephone: string }) => {
         const findByTelephoneSchema = z.object({
           telephone: z
             .string({
               invalid_type_error: "O telefone deve ser uma string",
-              required_error: "Informe o telefone",
+              required_error: "Informe o telefone em uma query string",
             })
             .length(11, { message: "O telefone deve ter 11 dígitos" }),
         });
 
-        const { telephone } = params;
+        const { telephone } = query;
         findByTelephoneSchema.parse({ telephone });
 
         const user = await this.findUserByTelephone.execute({ telephone });
@@ -173,6 +145,38 @@ class UserController {
         };
       }
     );
+
+    this.httpServer.on("get", "/users/:id", async (params: { id: string }, body: unknown) => {
+      const findByIdSchema = z.object({
+        id: z
+          .number({
+            invalid_type_error: "O ID deve ser um número",
+            required_error: "Informe o ID",
+          })
+          .min(1, { message: "Informe um ID válido" }),
+      });
+
+      const { id } = params;
+      findByIdSchema.parse({ id: Number(id) });
+
+      const user = await this.findUserById.execute({ id: Number(id) });
+
+      if (user.isFailure()) {
+        return {
+          type: user.value.type,
+          statusCode: user.value.statusCode,
+          message: user.value.message,
+        };
+      }
+
+      return {
+        type: "OK",
+        statusCode: 200,
+        user: {
+          ...user.value,
+        },
+      };
+    });
 
     this.httpServer.on("post", "/users", async (params: unknown, body: User) => {
       const createSchema = z.object({
@@ -231,7 +235,7 @@ class UserController {
       };
     });
 
-    this.httpServer.on("patch", "/users/:id/name", async (params: { id: number }, body: User) => {
+    this.httpServer.on("patch", "/users/:id/name", async (params: { id: string }, body: User) => {
       const updateNameSchema = z.object({
         id: z
           .number({
@@ -249,9 +253,9 @@ class UserController {
 
       const { id } = params;
       const { name } = body;
-      updateNameSchema.parse({ id, name });
+      updateNameSchema.parse({ id: Number(id), name });
 
-      const user = await this.updateUser.execute({ id, name });
+      const user = await this.updateUser.execute({ id: Number(id), name });
 
       if (user.isFailure()) {
         return {
@@ -274,7 +278,7 @@ class UserController {
     this.httpServer.on(
       "patch",
       "/users/:id/telephone",
-      async (params: { id: number }, body: User) => {
+      async (params: { id: string }, body: User) => {
         const updateTelephoneSchema = z.object({
           id: z
             .number({
@@ -292,9 +296,9 @@ class UserController {
 
         const { id } = params;
         const { telephone } = body;
-        updateTelephoneSchema.parse({ id, telephone });
+        updateTelephoneSchema.parse({ id: Number(id), telephone });
 
-        const user = await this.updateTelephone.execute({ id, telephone });
+        const user = await this.updateTelephone.execute({ id: Number(id), telephone });
 
         if (user.isFailure()) {
           return {
@@ -318,7 +322,7 @@ class UserController {
     this.httpServer.on(
       "patch",
       "/users/:id/password",
-      async (params: { id: number }, body: User) => {
+      async (params: { id: string }, body: User) => {
         const updatePasswordSchema = z.object({
           id: z
             .number({
@@ -336,9 +340,9 @@ class UserController {
 
         const { id } = params;
         const { password } = body;
-        updatePasswordSchema.parse({ id, password });
+        updatePasswordSchema.parse({ id: Number(id), password });
 
-        const user = await this.updatePasswordUser.execute({ id, password });
+        const user = await this.updatePasswordUser.execute({ id: Number(id), password });
 
         if (user.isFailure()) {
           return {
@@ -359,7 +363,7 @@ class UserController {
       }
     );
 
-    this.httpServer.on("delete", "/users/:id", async (params: { id: number }, body: unknown) => {
+    this.httpServer.on("delete", "/users/:id", async (params: { id: string }, body: unknown) => {
       const deleteSchema = z.object({
         id: z
           .number({
@@ -370,9 +374,9 @@ class UserController {
       });
 
       const { id } = params;
-      deleteSchema.parse({ id });
+      deleteSchema.parse({ id: Number(id) });
 
-      const user = await this.deleteUser.execute({ id });
+      const user = await this.deleteUser.execute({ id: Number(id) });
 
       if (user.isFailure()) {
         return {

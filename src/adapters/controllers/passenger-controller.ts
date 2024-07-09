@@ -26,7 +26,7 @@ class PassengerController {
       };
     });
 
-    this.httpServer.on("get", "/passengers/:id", async (params: { id: number }, body: unknown) => {
+    this.httpServer.on("get", "/passengers/:id", async (params: { id: string }, body: unknown) => {
       const findByIdSchema = z.object({
         id: z
           .number({
@@ -37,9 +37,9 @@ class PassengerController {
       });
 
       const { id } = params;
-      findByIdSchema.parse({ id });
+      findByIdSchema.parse({ id: Number(id) });
 
-      const passenger = await this.findPassengerById.execute({ id });
+      const passenger = await this.findPassengerById.execute({ id: Number(id) });
 
       if (passenger.isFailure()) {
         return {
@@ -128,7 +128,7 @@ class PassengerController {
     this.httpServer.on(
       "delete",
       "/passengers/:id",
-      async (params: { id: number }, body: unknown) => {
+      async (params: { id: string }, body: unknown) => {
         const deleteSchema = z.object({
           id: z
             .number({
@@ -139,9 +139,9 @@ class PassengerController {
         });
 
         const { id } = params;
-        deleteSchema.parse({ id });
+        deleteSchema.parse({ id: Number(id) });
 
-        const passenger = await this.cancelTravel.execute({ id });
+        const passenger = await this.cancelTravel.execute({ id: Number(id) });
 
         if (passenger.isFailure()) {
           return {
