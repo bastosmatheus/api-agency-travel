@@ -1,6 +1,7 @@
 import cors from "cors";
 import bodyParser from "body-parser";
 import express, { Request, Response } from "express";
+import { ZodError } from "zod";
 
 type HttpMethods = "get" | "post" | "patch" | "put" | "delete";
 
@@ -36,10 +37,18 @@ class ExpressAdapter implements HttpServer {
   public on(method: HttpMethods, url: string, callback: Function): void {
     this.app[method](url.replace(/\{|\}/g, ""), async (req: Request, res: Response) => {
       try {
-        const output: Output = await callback(req.params, req.body);
+        const output: Output = await callback(req.params, req.body, req.query);
 
         return res.status(output.statusCode).json(output);
       } catch (error) {
+        if (error instanceof ZodError) {
+          return res.status(400).json({
+            type: "Bad Request",
+            statusCode: 400,
+            message: error.issues[0].message,
+          });
+        }
+
         if (error instanceof Error) {
           return res.status(400).json({
             type: "Bad Request",

@@ -6,13 +6,64 @@ class UserRepositoryDatabase implements UserRepository {
   constructor(private readonly databaseConnection: DatabaseConnection) {}
 
   public async findAll(): Promise<User[]> {
-    const users = await this.databaseConnection.query("SELECT * FROM users", []);
+    const users = await this.databaseConnection.query(
+      `
+      SELECT 
+      users.id, 
+      users.name, 
+      users.email, 
+      users.cpf, 
+      users.telephone,
+      COALESCE(
+          (
+            SELECT JSON_AGG(
+                JSON_BUILD_OBJECT(
+                  'id', passengers.id,
+                  'seat', passengers.seat,
+                  'payment', passengers.payment,
+                  'id_travel', passengers.id_travel,
+                  'id_user', passengers.id_user
+                )
+            )
+            FROM passengers
+            WHERE passengers.id_user = users.id
+        ), '[]'
+      ) AS passengers
+      FROM users`,
+      []
+    );
 
     return users;
   }
 
   public async findById(id: number): Promise<User | null> {
-    const [user] = await this.databaseConnection.query("SELECT * FROM users WHERE id = $1", [id]);
+    const [user] = await this.databaseConnection.query(
+      `
+      SELECT
+      users.id, 
+      users.name, 
+      users.email, 
+      users.cpf, 
+      users.telephone, 
+      COALESCE (
+        (
+          SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', passengers.id,
+              'seat', passengers.seat,
+              'payment', passengers.payment,
+              'id_travel', passengers.id_travel,
+              'id_user', passengers.id_user
+            )
+          )
+          FROM passengers
+          WHERE passengers.id_user = users.id
+        ), '[]'
+      ) AS passengers
+      FROM users 
+      WHERE id = $1`,
+      [id]
+    );
 
     if (!user) {
       return null;
@@ -30,9 +81,33 @@ class UserRepositoryDatabase implements UserRepository {
   }
 
   public async findByEmail(email: string): Promise<User | null> {
-    const [user] = await this.databaseConnection.query("SELECT * FROM users WHERE email = $1", [
-      email,
-    ]);
+    const [user] = await this.databaseConnection.query(
+      `
+      SELECT
+      users.id, 
+      users.name, 
+      users.email, 
+      users.cpf, 
+      users.telephone, 
+      COALESCE (
+        (
+          SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', passengers.id,
+              'seat', passengers.seat,
+              'payment', passengers.payment,
+              'id_travel', passengers.id_travel,
+              'id_user', passengers.id_user
+            )
+          )
+          FROM passengers
+          WHERE passengers.id_user = users.id
+        ), '[]'
+      ) AS passengers
+      FROM users 
+      WHERE email = $1`,
+      [email]
+    );
 
     if (!user) {
       return null;
@@ -50,7 +125,33 @@ class UserRepositoryDatabase implements UserRepository {
   }
 
   public async findByCpf(cpf: string): Promise<User | null> {
-    const [user] = await this.databaseConnection.query("SELECT * FROM users WHERE cpf = $1", [cpf]);
+    const [user] = await this.databaseConnection.query(
+      `
+      SELECT
+      users.id, 
+      users.name, 
+      users.email, 
+      users.cpf, 
+      users.telephone, 
+      COALESCE (
+        (
+          SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', passengers.id,
+              'seat', passengers.seat,
+              'payment', passengers.payment,
+              'id_travel', passengers.id_travel,
+              'id_user', passengers.id_user
+            )
+          )
+          FROM passengers
+          WHERE passengers.id_user = users.id
+        ), '[]'
+      ) AS passengers
+      FROM users 
+      WHERE cpf = $1`,
+      [cpf]
+    );
 
     if (!user) {
       return null;
@@ -68,9 +169,35 @@ class UserRepositoryDatabase implements UserRepository {
   }
 
   public async findByTelephone(telephone: string): Promise<User | null> {
-    const user = await this.databaseConnection.query("SELECT * FROM users WHERE telephone = $1", [
-      telephone,
-    ]);
+    const [user] = await this.databaseConnection.query(
+      `
+      SELECT
+      users.id, 
+      users.name, 
+      users.email, 
+      users.cpf, 
+      users.telephone, 
+      COALESCE (
+        (
+          SELECT JSON_AGG(
+            JSON_BUILD_OBJECT(
+              'id', passengers.id,
+              'seat', passengers.seat,
+              'payment', passengers.payment,
+              'id_travel', passengers.id_travel,
+              'id_user', passengers.id_user
+            )
+          )
+          FROM passengers
+          WHERE passengers.id_user = users.id
+        ), '[]'
+      ) AS passengers
+      FROM users 
+      WHERE telephone = $1`,
+      [telephone]
+    );
+
+    console.log(user);
 
     if (!user) {
       return null;

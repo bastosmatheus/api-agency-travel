@@ -6,14 +6,38 @@ class PassengerRepositoryDatabase implements PassengerRepository {
   constructor(private readonly databaseConnection: DatabaseConnection) {}
 
   public async findAll(): Promise<Passenger[]> {
-    const passengers = await this.databaseConnection.query("SELECT * FROM passengers", []);
+    const passengers = await this.databaseConnection.query(
+      `
+      SELECT
+      passengers.id,
+      passengers.seat,
+      passengers.payment,
+      passengers.id_travel,
+      passengers.id_user,
+      departure_station.name AS departure_location,
+      departure_station.city AS departure_city,
+      departure_station.uf AS departure_uf,
+      arrival_station.name AS arrival_location,
+      arrival_station.city AS arrival_city,
+      arrival_station.uf AS arrival_uf
+      FROM passengers
+      INNER JOIN users ON users.id = passengers.id_user
+      INNER JOIN travels ON travels.id = passengers.id_travel
+      INNER JOIN bus_stations AS departure_station ON travels.id_busStation_departureLocation = departure_station.id
+      INNER JOIN bus_stations AS arrival_station ON travels.id_busStation_arrivalLocation = arrival_station.id
+      `,
+      []
+    );
 
     return passengers;
   }
 
   public async findById(id: number): Promise<Passenger | null> {
     const [passenger] = await this.databaseConnection.query(
-      "SELECT * FROM passengers WHERE id = $1",
+      `
+      SELECT * FROM passengers
+      WHERE passengers.id = $1
+      `,
       [id]
     );
 

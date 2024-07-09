@@ -38,7 +38,7 @@ class InMemoryTravelRepository implements TravelRepository {
     return travelsValids;
   }
 
-  public async findByDepartureDate(date: Date, city: string): Promise<Travel[]> {
+  public async findByDepartureDate(date: string, city: string): Promise<Travel[]> {
     const busStations = this.busStations.filter((busStation) => busStation.city === city);
 
     let travelsValids: Travel[] = [];
@@ -47,7 +47,7 @@ class InMemoryTravelRepository implements TravelRepository {
       busStations.forEach((busStation) => {
         if (
           busStation.id === travel.id_busStation_departureLocation &&
-          travel.departure_date.getDay() === date.getDay()
+          travel.departure_date.getUTCDate() === new Date(date).getUTCDate()
         )
           travelsValids.push(travel);
       });
@@ -83,6 +83,14 @@ class InMemoryTravelRepository implements TravelRepository {
     this.travels.push(travel);
 
     return travel;
+  }
+
+  public async updateAvailableSeats(id: number, available_seats: number[]): Promise<Travel> {
+    const travelIndex = this.travels.findIndex((travel) => travel.id === id);
+
+    this.travels[travelIndex].available_seats = available_seats;
+
+    return this.travels[travelIndex];
   }
 
   public async delete(id: number): Promise<Travel> {
