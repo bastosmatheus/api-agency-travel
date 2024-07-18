@@ -45,7 +45,8 @@ class UserRepositoryDatabase implements UserRepository {
       users.email,
       users.password,
       users.cpf, 
-      users.telephone, 
+      users.telephone,
+      users.is_admin,
       COALESCE (
         (
           SELECT JSON_AGG(
@@ -90,7 +91,8 @@ class UserRepositoryDatabase implements UserRepository {
       users.email,
       users.password,
       users.cpf, 
-      users.telephone, 
+      users.telephone,
+      users.is_admin,
       COALESCE (
         (
           SELECT JSON_AGG(
@@ -115,6 +117,8 @@ class UserRepositoryDatabase implements UserRepository {
       return null;
     }
 
+    console.log(user);
+
     return User.restore(
       user.id,
       user.name,
@@ -135,7 +139,8 @@ class UserRepositoryDatabase implements UserRepository {
       users.email,
       users.password,
       users.cpf, 
-      users.telephone, 
+      users.telephone,
+      users.is_admin,
       COALESCE (
         (
           SELECT JSON_AGG(
@@ -180,7 +185,8 @@ class UserRepositoryDatabase implements UserRepository {
       users.email,
       users.password,
       users.cpf, 
-      users.telephone, 
+      users.telephone,
+      users.is_admin,
       COALESCE (
         (
           SELECT JSON_AGG(
