@@ -1,5 +1,9 @@
 <h1 align="center" style="font-weight: bold">api-agency-travel 🚌</h1>
 
+## Descrição 📜
+
+Esse projeto consiste em uma api para uma agência de viagens de ônibus, mostrando todo o processo para efetuar a compra de uma passagem, desde a criação do usuário até a escolha de um destino para viajar. A aplicação faz integração com a api maps do google, onde calcula a duração da viagem, distancia, data/horário de chegada, entre outras informações. As viagens podem ser visualizadas mesmo sem o cadastro, agora para comprar uma passagem, é necesário o login no sistema. A criação, edição ou exclusão das viagens e/ou rodoviárias é feita apenas por usuários administradores (validado através do token jwt). O projeto foi feito utilizando arquitetura limpa e também foram criados testes unitários com o vitest.
+
 ## Tecnologias 🖥️
 
 Este projeto está utilizando as seguintes tecnologias:
@@ -10,10 +14,6 @@ Este projeto está utilizando as seguintes tecnologias:
 - [Vitest](https://vitest.dev/)
 - [JWT](https://jwt.io/)
 - [Zod](https://zod.dev/)
-
-## Descrição 📜
-
-Esse projeto consiste em uma api para uma agência de viagens de ônibus, mostrando todo o processo para efetuar a compra de uma passagem, desde a criação do usuário até a escolha de um destino para viajar. A aplicação faz integração com a api maps do google, onde calcula a duração da viagem, distancia, data/horário de chegada, entre outras informações. As viagens podem ser visualizadas mesmo sem o cadastro, agora para comprar uma passagem, é necesário o login no sistema. A criação, edição ou exclusão das viagens e/ou rodoviárias é feita apenas por usuários administradores (validado através do token jwt). O projeto foi feito utilizando arquitetura limpa e também foram criados testes unitários com o vitest.
 
 ## Endpoints 📌
 
